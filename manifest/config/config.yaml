@@ -1,0 +1,30 @@
+logger:
+  level : "all"
+  stdout: true
+# e-scanner.mode = gorm需要配置数据库连接
+database:
+  default:
+    link:  "mysql:root:1qaz2wsx@tcp(192.168.100.1:3306)/test"
+    #link:  "sqlite::@file(test.db)"
+    debug: "true"
+    
+# e-scanner.mode = rmq需要配置mq连接
+mq:
+  type: rokcetmq
+  endpoint: 192.168.100.1:8081
+  defaultTopic: test1
+  defaultGroupName: ConsumerGroup1
+
+e-scanner:
+  mode: gorm  #可选[gorm,rmq]
+  rpc: https://rpc.ankr.com/bsc
+  contracts:
+    - name: USDTransfer  #扫描器名称(控制在10字符内)
+      check: false
+      address: ["0x0E09FaBB73Bd3Ade0a17ECC321fD13a19e81cE82"] #合约地址
+      topics: 
+        - ["Transfer(address,address,uint256)"] #监听事件
+    
+      
+
+
