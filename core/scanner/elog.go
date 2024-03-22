@@ -30,6 +30,7 @@ type LogQuery struct {
 	CheckState      int    `json:"checkState"      ` // 链上状态: 0:待处理 10:已确认 20:确认异常
 	State           int    `json:"state"      `      // 链上状态: 0:待处理 10:已处理
 	Limit           int
+	Desc            bool
 }
 
 // 日志存储器

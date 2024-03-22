@@ -112,7 +112,12 @@ func (s *gOrmLogStorage) QueryLogs(ctx context.Context, query scanner.LogQuery) 
 		query.Limit = 10000
 	}
 	dbList := []entity.HdContractEvent{}
-	err = sdao.OrderDesc("id").Limit(query.Limit).Scan(&dbList)
+	if query.Desc {
+		sdao = sdao.OrderDesc("block_number")
+	} else {
+		sdao = sdao.OrderAsc("block_number")
+	}
+	err = sdao.Limit(query.Limit).Scan(&dbList)
 	if err != nil {
 		return
 	}
