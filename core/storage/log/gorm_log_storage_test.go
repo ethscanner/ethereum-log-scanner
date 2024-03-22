@@ -18,3 +18,10 @@ func TestQueryLogs(t *testing.T) {
 	}
 	fmt.Println(logs)
 }
+
+func TestXxx(t *testing.T) {
+	by1 := [32]byte{1}
+	by2 := [32]byte{1}
+
+	fmt.Println(by1 == by2)
+}

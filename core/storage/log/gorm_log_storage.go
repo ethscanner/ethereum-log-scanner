@@ -72,15 +72,10 @@ func (s *gOrmLogStorage) AddLogsToCache(ctx context.Context, name string, logs [
 	return nil
 }
 
-func (s *gOrmLogStorage) MarkAsProcessed(ctx context.Context, name string, logs []scanner.ELogId) error {
+func (s *gOrmLogStorage) MarkAsProcessed(ctx context.Context, name string, ids []uint64) error {
 	sdao := dao.HdContractEvent.Ctx(ctx)
-	txHashs := make([]string, len(logs))
-	eventIds := make([]uint, len(logs))
-	for i, v := range logs {
-		txHashs[i] = v.TxHash.Hex()
-		eventIds[i] = v.Index
-	}
-	_, err := sdao.Data("state=10").WhereIn("tx_hash in(?)", txHashs).WhereIn("event_hash in(?)", eventIds).Update()
+
+	_, err := sdao.Data("state=10").WhereIn("id", ids).Update()
 	return err
 }
 
@@ -156,10 +151,10 @@ func (s *gOrmLogStorage) UpdateBlockCheckState(ctx context.Context, log scanner.
 	return nil
 }
 
-func (s *gOrmLogStorage) GetLogByElogId(ctx context.Context, id scanner.ELogId) (log scanner.Elog, err error) {
+func (s *gOrmLogStorage) GetLogByElogId(ctx context.Context, txHash common.Hash, blockHash common.Hash, index uint) (log scanner.Elog, err error) {
 	ret, err := dao.HdContractEvent.Ctx(ctx).
 		Where("tx_hash=? and block_hash=? and event_id=?",
-			id.TxHash.Hex(), id.BlockHash.Hex(), id.Index).One()
+			txHash.Hex(), blockHash.Hex(), index).One()
 	if err != nil || ret.IsEmpty() {
 		return log, err
 	} else {

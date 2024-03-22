@@ -5,21 +5,17 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/gogf/gf/v2/os/gtime"
 )
-
-// 日志id
-type ELogId struct {
-	TxHash    common.Hash `json:"transactionHash" `
-	BlockHash common.Hash `json:"blockHash"`
-	Index     uint        `json:"logIndex" `
-}
 
 type Elog struct {
 	types.Log
-	Id           *uint64 `json:"id"              ` // id
-	ContractName string  `json:"contractName"    ` // 合约名
-	CheckState   int     `json:"checkState"      ` // 链上状态: 0:待处理 10:已确认 20:确认异常
-	CheckedBlock uint64  `json:"checkedBlock"    ` // 已确认区块
+	Id           *uint64     `json:"id"              ` // id
+	ContractName string      `json:"contractName"    ` // 合约名
+	CheckState   int         `json:"checkState"      ` // 链上状态: 0:待处理 10:已确认 20:确认异常
+	CheckedBlock uint64      `json:"checkedBlock"    ` // 已确认区块
+	CreatedAt    *gtime.Time `json:"createdAt"       ` // 创建时间
+	UpdatedAt    *gtime.Time `json:"updatedAt"       ` // 更新时间
 
 }
 
@@ -46,13 +42,13 @@ type DbLogStorage interface {
 	//保存日志
 	SaveLogs(ctx context.Context, name string, logs []types.Log) error
 	//批量标记已处理
-	MarkAsProcessed(ctx context.Context, name string, logs []ELogId) error
+	MarkAsProcessed(ctx context.Context, name string, ids []uint64) error
 
 	QueryLogs(ctx context.Context, query LogQuery) (logs []Elog, err error)
 
 	UpdateBlockCheckState(ctx context.Context, log Elog) error
 
-	GetLogByElogId(ctx context.Context, id ELogId) (log Elog, err error)
+	GetLogByElogId(ctx context.Context, txHash common.Hash, blockHash common.Hash, index uint) (log Elog, err error)
 }
 
 // 扫描存储器
