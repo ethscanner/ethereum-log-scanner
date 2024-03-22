@@ -19,5 +19,9 @@ func TestHashArrayToBytes(t *testing.T) {
 	hashs = BytesToHashArray(bytes)
 	fmt.Println(bytes)
 	fmt.Println(hashs)
+}
 
+func TestBytes(t *testing.T) {
+	by1 := []byte{1, 2, 3, 4}
+	fmt.Println(by1[1:2])
 }

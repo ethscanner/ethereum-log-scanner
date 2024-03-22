@@ -134,10 +134,13 @@ func (s *gOrmLogStorage) entity2Elog(v entity.HdContractEvent) (elog scanner.Elo
 		Index:       uint(v.EventId),
 	}
 	return scanner.Elog{
+		ContractName: v.ContractName,
 		Id:           v.Id,
 		Log:          tlog,
 		CheckState:   v.CheckState,
 		CheckedBlock: v.CheckedBlock,
+		CreatedAt:    v.CreatedAt,
+		UpdatedAt:    v.UpdatedAt,
 	}
 }
 

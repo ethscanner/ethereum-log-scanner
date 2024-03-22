@@ -16,7 +16,7 @@ func HashArrayToBytes(hashs []common.Hash) (bytes []byte) {
 
 func BytesToHashArray(bytes []byte) (hashs []common.Hash) {
 	hashs = make([]common.Hash, 0, len(bytes)>>5) //len / 32
-	for i := 32; i < len(bytes); i += 32 {
+	for i := 32; i <= len(bytes); i += 32 {
 		hashs = append(hashs, common.BytesToHash(bytes[i-32:i]))
 	}
 	return hashs
