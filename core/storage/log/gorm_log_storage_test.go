@@ -15,6 +15,8 @@ func TestQueryLogs(t *testing.T) {
 	query := scanner.LogQuery{
 		State:      0,
 		CheckState: -1,
+		OrderBy:    "id",
+		Desc:       true,
 	}
 	logs, err := d.QueryLogs(ctx, query)
 	if err != nil {

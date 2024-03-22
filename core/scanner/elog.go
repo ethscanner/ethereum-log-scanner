@@ -31,6 +31,7 @@ type LogQuery struct {
 	State           int    `json:"state"      `      // 链上状态: 0:待处理 10:已处理
 	Limit           int
 	Desc            bool
+	OrderBy         string
 }
 
 // 日志存储器
