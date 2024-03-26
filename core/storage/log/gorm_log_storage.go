@@ -84,6 +84,9 @@ func (s *gOrmLogStorage) QueryLogs(ctx context.Context, query scanner.LogQuery) 
 	if query.State != nil {
 		sdao = sdao.Where("state=?", query.State)
 	}
+	if len(query.StateList) > 0 {
+		sdao = sdao.Where("state in (?)", query.StateList)
+	}
 	if query.BlockNumber != nil {
 		sdao = sdao.Where("block_number=?", query.BlockNumber)
 	}
@@ -104,6 +107,9 @@ func (s *gOrmLogStorage) QueryLogs(ctx context.Context, query scanner.LogQuery) 
 	}
 	if query.CheckState != nil {
 		sdao = sdao.Where("check_state=?", query.CheckState)
+	}
+	if len(query.CheckStateList) > 0 {
+		sdao = sdao.Where("check_state in (?)", query.CheckStateList)
 	}
 	if query.IdGt != nil {
 		sdao = sdao.Where("id > ?", query.IdGt)
