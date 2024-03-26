@@ -31,9 +31,10 @@ func (s *checker) CheckAllStroage(ctx context.Context, client *ethclient.Client,
 			return 0, err
 		}
 	}
+	var CheckState int = 0
 	query := LogQuery{
 		ContractName: s.name,
-		CheckState:   0,
+		CheckState:   &CheckState,
 		Limit:        s.SegmentationLength,
 	}
 	if logs, err := s.logStorage.QueryLogs(ctx, query); err != nil {

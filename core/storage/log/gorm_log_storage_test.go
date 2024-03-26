@@ -12,11 +12,11 @@ import (
 func TestQueryLogs(t *testing.T) {
 	ctx := gctx.GetInitCtx()
 	d := NewGormLogStorage()
+	var State int = 0
 	query := scanner.LogQuery{
-		State:      0,
-		CheckState: -1,
-		OrderBy:    "id",
-		Desc:       true,
+		State:   &State,
+		OrderBy: "id",
+		Desc:    true,
 	}
 	logs, err := d.QueryLogs(ctx, query)
 	if err != nil {

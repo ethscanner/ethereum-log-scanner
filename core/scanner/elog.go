@@ -20,18 +20,21 @@ type Elog struct {
 }
 
 type LogQuery struct {
-	IdGt            int64  `json:"idGt"         `    // id大于
+	IdGt            *int64 `json:"idGt"         `    // id大于
 	ContractName    string `json:"contractName"    ` // 合约名
 	ContractAddress string `json:"contractAddress" ` // 合约地址
 	TxHash          string `json:"txHash"          ` // 交易哈希
 	EventHash       string `json:"eventHash"       ` // 事件名
-	EventId         int64  `json:"eventId"         ` // 事件id
-	BlockNumber     int64  `json:"blockNumber"     ` // 区块编号
-	CheckState      int    `json:"checkState"      ` // 链上状态: 0:待处理 10:已确认 20:确认异常
-	State           int    `json:"state"      `      // 链上状态: 0:待处理 10:已处理
-	Limit           int
-	Desc            bool
-	OrderBy         string
+	EventId         *int64 `json:"eventId"         ` // 事件id
+	BlockNumber     *int64 `json:"blockNumber"     ` // 区块编号
+	CheckState      *int   `json:"checkState"      ` // 链上状态: 0:待处理 10:已确认 20:确认异常
+	CheckStateList  []int  `json:"checkStateList"      `
+	State           *int   `json:"state"      ` // 链上状态: 0:待处理 10:已处理
+	StateList       []int  `json:"stateList"      `
+
+	Limit   int
+	Desc    bool
+	OrderBy string
 }
 
 // 日志存储器

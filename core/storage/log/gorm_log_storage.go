@@ -81,13 +81,13 @@ func (s *gOrmLogStorage) MarkAsProcessed(ctx context.Context, name string, ids [
 
 func (s *gOrmLogStorage) QueryLogs(ctx context.Context, query scanner.LogQuery) (logs []scanner.Elog, err error) {
 	sdao := dao.HdContractEvent.Ctx(ctx)
-	if query.State >= 0 {
+	if query.State != nil {
 		sdao = sdao.Where("state=?", query.State)
 	}
-	if query.BlockNumber != 0 {
+	if query.BlockNumber != nil {
 		sdao = sdao.Where("block_number=?", query.BlockNumber)
 	}
-	if query.EventId != 0 {
+	if query.EventId != nil {
 		sdao = sdao.Where("event_id=?", query.EventId)
 	}
 	if query.ContractName != "" {
@@ -102,10 +102,10 @@ func (s *gOrmLogStorage) QueryLogs(ctx context.Context, query scanner.LogQuery) 
 	if query.TxHash != "" {
 		sdao = sdao.Where("tx_hash=?", query.TxHash)
 	}
-	if query.CheckState >= 0 {
+	if query.CheckState != nil {
 		sdao = sdao.Where("check_state=?", query.CheckState)
 	}
-	if query.IdGt > 0 {
+	if query.IdGt != nil {
 		sdao = sdao.Where("id > ?", query.IdGt)
 	}
 	if query.Limit == 0 || query.Limit > 10000 {
