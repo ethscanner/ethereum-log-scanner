@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"context"
 	"os"
+	"sync"
 
 	"github.com/BurntSushi/toml"
 	"github.com/ethscanner/ethereum-log-scanner/core/utils"
@@ -13,6 +14,7 @@ const FILE_PATH = "scanner.toml"
 
 type Config = map[string]uint64
 type gTomlScannerStorage struct {
+	lock sync.Mutex
 }
 
 func NewTomlScannerStorage() *gTomlScannerStorage {
@@ -36,6 +38,8 @@ func (s *gTomlScannerStorage) GetConfig(ctx context.Context) (conf Config, err e
 }
 
 func (s *gTomlScannerStorage) UpdateUint64(ctx context.Context, key string, val uint64) (err error) {
+	s.lock.Lock()
+	defer s.lock.Unlock()
 	config, err := s.GetConfig(ctx)
 	if err != nil {
 		return err
@@ -56,6 +60,7 @@ func (s *gTomlScannerStorage) InsertUint64(ctx context.Context, key string, val 
 }
 
 func (s *gTomlScannerStorage) GetUint64ByKey(ctx context.Context, key string) (val uint64, err error) {
+
 	config, err := s.GetConfig(ctx)
 	if err != nil {
 		return 0, err
