@@ -4,13 +4,14 @@ import (
 	"bufio"
 	"context"
 	"os"
+	"path/filepath"
 	"sync"
 
 	"github.com/BurntSushi/toml"
 	"github.com/ethscanner/ethereum-log-scanner/core/utils"
 )
 
-const FILE_PATH = "scanner.toml"
+const FILE_PATH = "config/scanner.toml"
 
 type Config = map[string]uint64
 type gTomlScannerStorage struct {
@@ -18,7 +19,14 @@ type gTomlScannerStorage struct {
 }
 
 func NewTomlScannerStorage() *gTomlScannerStorage {
-
+	dir := filepath.Dir(FILE_PATH)
+	if exists, err := utils.PathExists(dir); err != nil {
+		panic(err)
+	} else if !exists {
+		if err := os.Mkdir(dir, os.ModePerm); err != nil {
+			panic(err)
+		}
+	}
 	if exists, err := utils.PathExists(FILE_PATH); err != nil {
 		panic(err)
 	} else if !exists {

@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/BurntSushi/toml"
@@ -37,4 +38,10 @@ func TestToml(t *testing.T) {
 	toml.NewEncoder(writer).Encode(conf)
 	// 可以通过conf读取配置
 	fmt.Println(conf)
+}
+
+func TestFileBase(t *testing.T) {
+	files := "hello/config/config.tom"
+	dir := filepath.Dir(files)
+	fmt.Println(dir)
 }
