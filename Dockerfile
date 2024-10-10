@@ -1,15 +1,19 @@
-FROM loads/alpine:3.8
+FROM golang AS base
 
-###############################################################################
-#                                INSTALLATION
-###############################################################################
+WORKDIR /app
 
-ENV WORKDIR                 /app
+COPY . .
 
-COPY ./linux_amd64/main $WORKDIR/main
-RUN chmod +x $WORKDIR/main
-###############################################################################
-#                                   START
-###############################################################################
-#ENV PriKey 0x1113
-WORKDIR $WORKDIR
+# 构建两个main程序
+RUN go build -o main
+
+RUN chmod +x ./main
+
+# 安装supervisor
+RUN apt update && apt install -y supervisor
+
+# 复制supervisor配置文件
+COPY conf /etc/supervisor/conf.d
+
+# 使用supervisor作为容器的入口点
+CMD ["/usr/bin/supervisord", "-n", "-c", "/etc/supervisor/supervisord.conf"]

@@ -1,0 +1,8 @@
+services:
+  http:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - ./manifest:/app/manifest
+      - ./config:/app/config
