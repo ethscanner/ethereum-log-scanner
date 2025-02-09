@@ -70,21 +70,22 @@ func (s *scanner) GetScanBlockNumbersByStroage(ctx context.Context, expectToBloc
 
 	if from == 0 {
 		from = to
-		s.InitScannedBlockNum(ctx, expectToBlockNum)
+		if err := s.InitScannedBlockNum(ctx, expectToBlockNum); err != nil {
+			return 0, 0, err
+		}
 	}
 	if from > s.OverridePerScan {
 		from = from - s.OverridePerScan
 	}
+
 	return from, to, nil
 
 }
 
 func (s *scanner) ScanToStroage(ctx context.Context, client *ethclient.Client, to uint64) (scannedBlockNum uint64, err error) {
 	//如果to传入为0,则获取最新区块
-	if to == 0 {
-		if to, err = client.BlockNumber(ctx); err != nil {
-			return 0, err
-		}
+	if to <= s.DelayBlocks {
+		return 0, nil
 	}
 	//获取偏移后的from和to
 	from, to, err := s.GetScanBlockNumbersByStroage(ctx, to)
@@ -104,20 +105,22 @@ func (s *scanner) ScanToStroage(ctx context.Context, client *ethclient.Client, t
 func (s *scanner) SegmentationScanToStroage(ctx context.Context, client *ethclient.Client, from, to uint64) (scannedBlockNum uint64, err error) {
 	g.Log().Infof(ctx, "开始扫描 SegmentationScanToStroage %v:%d - %d", s.name, from, to)
 	var logs []types.Log
-	var expectTo uint64 = from
-	for expectTo < to {
-		expectTo += s.SegmentationLength
-		from = expectTo - s.SegmentationLength
-		if expectTo > to {
-			expectTo = to
+	var actualTo uint64 = from
+	var actualFrom uint64
+	for actualTo < to {
+		actualTo += s.SegmentationLength
+		actualFrom = actualTo - s.SegmentationLength
+		if actualTo > to {
+			actualTo = to
 		}
-		g.Log().Infof(ctx, "开始扫描 %v:%d - %d", s.name, from, expectTo)
-		logs, scannedBlockNum, err = s.ConcurrentThreadQuery(ctx, client, from, expectTo)
+		g.Log().Infof(ctx, "开始扫描 %v:%d - %d", s.name, actualFrom, actualTo)
+		logs, scannedBlockNum, err = s.ConcurrentThreadQuery(ctx, client, actualFrom, actualTo)
 		if err != nil {
 			return 0, err
-		} else if scannedBlockNum != expectTo {
+		} else if scannedBlockNum != actualTo {
 			return 0, fmt.Errorf("ConcurrentThreadQuery error: %w ", err)
 		}
+
 		//保存日志
 		if err := s.saveLogs(ctx, logs); err != nil {
 			return 0, err
@@ -134,17 +137,19 @@ func (s *scanner) SegmentationScanToStroage(ctx context.Context, client *ethclie
 func (s *scanner) SegmentationScan(ctx context.Context, client *ethclient.Client, from, to uint64) (allLogs []types.Log, scannedBlockNum uint64, err error) {
 	g.Log().Infof(ctx, "开始扫描 %v:%d - %d", s.name, from, to)
 	var logs []types.Log
-	var expectTo uint64 = from
-	for expectTo < to {
-		expectTo += s.SegmentationLength
-		from = expectTo - s.SegmentationLength
-		if expectTo > to {
-			expectTo = to
+	var actualTo uint64 = from
+	var actualFrom uint64
+	for actualTo < to {
+		actualTo += s.SegmentationLength
+		actualFrom = actualTo - s.SegmentationLength
+		if actualTo > to {
+			actualTo = to
+
 		}
-		logs, scannedBlockNum, err = s.ConcurrentThreadQuery(ctx, client, from, expectTo)
+		logs, scannedBlockNum, err = s.ConcurrentThreadQuery(ctx, client, actualFrom, actualTo)
 		if err != nil {
 			return nil, 0, err
-		} else if scannedBlockNum != expectTo {
+		} else if scannedBlockNum != actualTo {
 			return nil, 0, fmt.Errorf("ConcurrentThreadQuery error: %w ", err)
 		}
 		allLogs = append(allLogs, logs...)
@@ -173,19 +178,20 @@ func (s *scanner) ConcurrentThreadQuery(ctx context.Context, client *ethclient.C
 	wg.Add(threadCount)
 	//通道
 	ch := make(chan queryResult, threadCount)
-	var expectTo uint64 = from
-	for expectTo < to {
-		expectTo += s.IntervalPerScan
-		from = expectTo - s.IntervalPerScan + 1
-		if expectTo > to {
-			expectTo = to
+	var actualTo uint64 = from
+	var actualFrom uint64
+	for actualTo < to {
+		actualTo += s.IntervalPerScan
+		actualFrom = actualTo - s.IntervalPerScan + 1
+		if actualTo > to {
+			actualTo = to
 		}
 		go func(from, to uint64) {
-			logs, err := s.FilterQuery(ctx, client, from, to)
+			logs, err := s.FilterQuery(ctx, client, actualFrom, to)
 			ret := queryResult{from, to, logs, err}
 			ch <- ret
 			wg.Done()
-		}(from, expectTo)
+		}(from, actualTo)
 	}
 	wg.Wait()
 	close(ch)

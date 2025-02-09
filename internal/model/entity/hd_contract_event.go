@@ -10,7 +10,7 @@ import (
 
 // HdContractEvent is the golang structure for table hd_contract_event.
 type HdContractEvent struct {
-	Id              *uint64      `json:"id"              ` // id
+	Id              uint64      `json:"id"              ` // id
 	ContractName    string      `json:"contractName"    ` // 合约名
 	ContractAddress string      `json:"contractAddress" ` // 合约地址
 	TxHash          string      `json:"txHash"          ` // 交易哈希

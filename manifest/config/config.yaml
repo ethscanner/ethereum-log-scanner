@@ -4,16 +4,17 @@ logger:
 # e-scanner.mode = gorm需要配置数据库连接
 database:
   default:
-    link:  "mysql:root:1qaz2wsx@tcp(192.168.100.1:3306)/test"
+    #ink:  "mysql:root:1qaz2wsx@tcp(192.168.100.1:3306)/test"
+    link:  "pgsql:root:root@tcp(192.168.100.1:5432)/postgres"
     #link:  "sqlite::@file(test.db)"
     debug: "true"
     
 # e-scanner.mode = rmq需要配置mq连接
-mq:
-  type: rokcetmq
-  endpoint: 192.168.100.1:8081
-  defaultTopic: test1
-  defaultGroupName: ConsumerGroup1
+# mq:
+#   type: rokcetmq
+#   endpoint: 192.168.100.1:8081
+#   defaultTopic: test1
+#   defaultGroupName: ConsumerGroup1
 
 e-scanner:
   mode: gorm  #可选[gorm,rmq]

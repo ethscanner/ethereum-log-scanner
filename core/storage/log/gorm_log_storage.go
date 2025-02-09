@@ -11,11 +11,24 @@ import (
 	"github.com/ethscanner/ethereum-log-scanner/internal/dao"
 	"github.com/ethscanner/ethereum-log-scanner/internal/model/entity"
 	"github.com/gogf/gf/v2/frame/g"
-	"github.com/gogf/gf/v2/os/gtime"
 )
 
 type gOrmLogStorage struct {
 	logCache *cache.Cache
+}
+
+type HdContractEventObj struct {
+	ContractName    string `json:"contractName"    ` // 合约名
+	ContractAddress string `json:"contractAddress" ` // 合约地址
+	TxHash          string `json:"txHash"          ` // 交易哈希
+	EventHash       string `json:"eventHash"       ` // 事件名
+	EventId         int64  `json:"eventId"         ` // 事件id
+	BlockNumber     int64  `json:"blockNumber"     ` // 区块编号
+	BlockHash       string `json:"blockHash"       ` // 交易哈希
+	EventTopics     []byte `json:"eventTopics"     ` // 事件头
+	EventData       []byte `json:"eventData"       ` // event数据
+	State           int    `json:"state"           ` // 0:待处理 10:已处理
+
 }
 
 func NewGormLogStorage() *gOrmLogStorage {
@@ -29,17 +42,16 @@ func (s *gOrmLogStorage) SaveLogs(ctx context.Context, name string, logs []types
 		return nil
 	}
 	sdao := dao.HdContractEvent.Ctx(ctx)
-	batch := len(logs) / 5000
-	saveLogs := make([]entity.HdContractEvent, 0, len(logs))
+	saveLogs := make([]*HdContractEventObj, 0, len(logs))
 	for _, v := range logs {
 		txHash := v.TxHash.Hex()
 		EventId := int64(v.Index)
-		key := utils.FromatEventIdKey(name, v.BlockNumber, v.Index)
+		key := utils.FromatEventIdKey(name, v.BlockHash.Hex(), v.Index)
 		if _, ok := s.logCache.Get(key); ok {
 			g.Log().Infof(ctx, "key %v已经存在", key)
 			continue
 		}
-		obj := entity.HdContractEvent{
+		obj := HdContractEventObj{
 			ContractName:    name,
 			ContractAddress: v.Address.Hex(),
 			TxHash:          txHash,
@@ -50,23 +62,25 @@ func (s *gOrmLogStorage) SaveLogs(ctx context.Context, name string, logs []types
 			EventTopics:     utils.HashArrayToBytes(v.Topics),
 			EventData:       v.Data,
 			State:           0,
-			CreatedAt:       gtime.Now(),
 		}
-		saveLogs = append(saveLogs, obj)
+		saveLogs = append(saveLogs, &obj)
 	}
-	if _, err := sdao.Data(saveLogs).Batch(batch).InsertIgnore(); err != nil {
+	ret, err := sdao.Data(saveLogs).Batch(5000).InsertIgnore()
+	if err != nil {
 		return err
-		// } else if rows, _ := ret.RowsAffected(); int(rows) != len(saveLogs) {
-		// 	return errors.New("保存日志错误")
 	} else {
-		return s.AddLogsToCache(ctx, name, saveLogs)
+		if rows, _ := ret.RowsAffected(); rows != int64(len(saveLogs)) {
+			g.Log().Errorf(ctx, "插入数量:%d,插入成功数量:%d", len(saveLogs), rows)
+		} else {
+			return s.AddLogsToCache(ctx, name, saveLogs)
+		}
 	}
-
+	return nil
 }
 
-func (s *gOrmLogStorage) AddLogsToCache(ctx context.Context, name string, logs []entity.HdContractEvent) error {
+func (s *gOrmLogStorage) AddLogsToCache(ctx context.Context, name string, logs []*HdContractEventObj) error {
 	for _, v := range logs {
-		key := utils.FromatEventIdKey(name, uint64(v.BlockNumber), uint(v.EventId))
+		key := utils.FromatEventIdKey(name, v.BlockHash, uint(v.EventId))
 		s.logCache.Add(key, cache.ByteView{})
 	}
 	return nil
@@ -90,6 +104,7 @@ func (s *gOrmLogStorage) QueryLogs(ctx context.Context, query scanner.LogQuery) 
 	if query.BlockNumber != nil {
 		sdao = sdao.Where("block_number=?", query.BlockNumber)
 	}
+
 	if query.EventId != nil {
 		sdao = sdao.Where("event_id=?", query.EventId)
 	}

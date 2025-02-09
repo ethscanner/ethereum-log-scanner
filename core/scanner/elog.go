@@ -10,7 +10,7 @@ import (
 
 type Elog struct {
 	types.Log
-	Id           *uint64     `json:"id"              ` // id
+	Id           uint64      `json:"id"              ` // id
 	ContractName string      `json:"contractName"    ` // 合约名
 	CheckState   int         `json:"checkState"      ` // 链上状态: 0:待处理 10:已确认 20:确认异常
 	CheckedBlock uint64      `json:"checkedBlock"    ` // 已确认区块

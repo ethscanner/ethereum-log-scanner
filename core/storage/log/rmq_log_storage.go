@@ -24,7 +24,7 @@ func NewgRmqLogStorage() *sRmqLogStorage {
 
 func (s *sRmqLogStorage) SaveLogs(ctx context.Context, name string, logs []types.Log) error {
 	for _, v := range logs {
-		key := utils.FromatEventIdKey(name, v.BlockNumber, v.Index)
+		key := utils.FromatEventIdKey(name, v.BlockHash.Hex(), v.Index)
 		if _, ok := s.logCache.Get(key); ok {
 			g.Log().Infof(ctx, "key %v已经存在", key)
 			continue
@@ -45,7 +45,7 @@ func (s *sRmqLogStorage) SaveLogs(ctx context.Context, name string, logs []types
 }
 
 func (s *sRmqLogStorage) AddLogsToCache(ctx context.Context, name string, log types.Log) error {
-	key := utils.FromatEventIdKey(name, uint64(log.BlockNumber), log.Index)
+	key := utils.FromatEventIdKey(name, log.BlockHash.Hex(), log.Index)
 	s.logCache.Add(key, cache.ByteView{})
 	return nil
 }

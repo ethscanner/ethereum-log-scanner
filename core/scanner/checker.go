@@ -25,12 +25,6 @@ func NewChecker(name string, logStorage DbLogStorage) *checker {
 }
 
 func (s *checker) CheckAllStroage(ctx context.Context, client *ethclient.Client, blockNumber uint64) (scannedBlockNum uint64, err error) {
-	//如果to传入为0,则获取最新区块
-	if blockNumber == 0 {
-		if blockNumber, err = client.BlockNumber(ctx); err != nil {
-			return 0, err
-		}
-	}
 	var CheckState int = 0
 	query := LogQuery{
 		ContractName: s.name,
@@ -62,6 +56,7 @@ func (s *checker) CheckAllStroage(ctx context.Context, client *ethclient.Client,
 
 func (s *checker) CheckLog(ctx context.Context, client *ethclient.Client, log Elog) (err error, success bool) {
 	if tx, err := client.TransactionReceipt(ctx, log.TxHash); err != nil {
+
 		if err == ethereum.NotFound {
 			return nil, false
 		}

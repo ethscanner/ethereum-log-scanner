@@ -22,6 +22,6 @@ func BytesToHashArray(bytes []byte) (hashs []common.Hash) {
 	return hashs
 }
 
-func FromatEventIdKey(name string, blockNumber uint64, eventId uint) string {
-	return fmt.Sprintf("%s_%d_%d", name, blockNumber, eventId)
+func FromatEventIdKey(name string, blockHash string, eventId uint) string {
+	return fmt.Sprintf("%s_%s_%d", name, blockHash, eventId)
 }

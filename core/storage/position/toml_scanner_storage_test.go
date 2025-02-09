@@ -11,6 +11,9 @@ func TestTomlStorageUpdate(t *testing.T) {
 	ctx := gctx.GetInitCtx()
 	s := NewTomlScannerStorage()
 	s.InsertUint64(ctx, "hello", 1)
-	config, _ := s.GetConfig(ctx)
+	config, err := s.GetUint64ByKey(ctx, "hello")
+	if err != nil {
+		t.Fatalf("error %e", err)
+	}
 	fmt.Println(config)
 }
