@@ -9,13 +9,14 @@ import (
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethscanner/ethereum-log-scanner/core/scanner"
+	"github.com/ethscanner/ethereum-log-scanner/core/storage"
 )
 
 const RPC_URL = "https://rpc.ankr.com/bsc"
 
 func TestGetScanBlockNumbers(t *testing.T) {
 	ctx := context.Background()
-	store := NewGormScannerStorage()
+	store := storage.NewGormScannerStorage()
 	address := common.HexToAddress("")
 	s := scanner.NewScanner("test", []common.Address{address}, store, nil, nil)
 	var BlockNumber uint64 = 10000
@@ -37,9 +38,10 @@ func TestFilterQuery(t *testing.T) {
 	logTransferSig := []byte("Transfer(address,address,uint256)")
 	logTransferSigHash := crypto.Keccak256Hash(logTransferSig)
 	address := common.HexToAddress("0x0E09FaBB73Bd3Ade0a17ECC321fD13a19e81cE82")
+
 	s := scanner.NewScanner("MarkTrasnferBlockNumber", []common.Address{address}, nil, nil, [][]common.Hash{{logTransferSigHash}})
-	var start uint64 = 30635690
-	var end uint64 = 30635691
+	var start uint64 = 46501500
+	var end uint64 = 46501500
 	logs, err := s.FilterQuery(ctx, client, start, end)
 	if err != nil {
 		t.Fatalf("error %e", err)
@@ -70,10 +72,11 @@ func TestSegmentationScan(t *testing.T) {
 	logTransferSig := []byte("Transfer(address,address,uint256)")
 	logTransferSigHash := crypto.Keccak256Hash(logTransferSig)
 	fmt.Println(logTransferSigHash.Hex())
-	logStorage := NewGormLogStorage()
-	scanStorage := NewGormScannerStorage()
+	logStorage := storage.NewGormLogStorage()
+	scanStorage := storage.NewGormScannerStorage()
 	address := common.HexToAddress("0x0E09FaBB73Bd3Ade0a17ECC321fD13a19e81cE82")
 	s := scanner.NewScanner("MarkTrasnferBlockNumber", []common.Address{address}, scanStorage, logStorage, [][]common.Hash{{logTransferSigHash}})
+
 	var start uint64 = 26138478
 	var end uint64 = 26139479
 
@@ -90,11 +93,14 @@ func TestScan(t *testing.T) {
 	client, _ := ethclient.Dial(RPC_URL)
 	ctx := context.Background()
 	address := common.HexToAddress("0x0E09FaBB73Bd3Ade0a17ECC321fD13a19e81cE82")
-	_storage := NewGormLogStorage()
-	scannerStorage := NewGormScannerStorage()
-	s := scanner.NewScanner("MarkTrasnferBlockNumber", []common.Address{address}, scannerStorage, _storage, nil)
+	_storage := storage.NewGormLogStorage()
+	scannerStorage := storage.NewGormScannerStorage()
+	logTransferSig := []byte("Transfer(address,address,uint256)")
+	logTransferSigHash := crypto.Keccak256Hash(logTransferSig)
+	s := scanner.NewScanner("MarkTrasnferBlockNumber", []common.Address{address}, scannerStorage, _storage, [][]common.Hash{{logTransferSigHash}})
 	_, err := s.ScanToStroage(ctx, client, 26139478)
 	if err != nil {
 		t.Fatalf("error %e", err)
 	}
+
 }

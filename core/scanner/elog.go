@@ -20,21 +20,24 @@ type Elog struct {
 }
 
 type LogQuery struct {
-	IdGt            *int64 `json:"idGt"         `    // id大于
-	ContractName    string `json:"contractName"    ` // 合约名
-	ContractAddress string `json:"contractAddress" ` // 合约地址
-	TxHash          string `json:"txHash"          ` // 交易哈希
-	EventHash       string `json:"eventHash"       ` // 事件名
-	EventId         *int64 `json:"eventId"         ` // 事件id
-	BlockNumber     *int64 `json:"blockNumber"     ` // 区块编号
-	CheckState      *int   `json:"checkState"      ` // 链上状态: 0:待处理 10:已确认 20:确认异常
-	CheckStateList  []int  `json:"checkStateList"      `
-	State           *int   `json:"state"      ` // 链上状态: 0:待处理 10:已处理
-	StateList       []int  `json:"stateList"      `
-
-	Limit   int
-	Desc    bool
-	OrderBy string
+	IdGt            *int64      `json:"idGt"         `    // id大于
+	ContractName    string      `json:"contractName"    ` // 合约名
+	ContractAddress string      `json:"contractAddress" ` // 合约地址
+	TxHash          string      `json:"txHash"          ` // 交易哈希
+	EventHash       string      `json:"eventHash"       ` // 事件名
+	EventId         *int64      `json:"eventId"         ` // 事件id
+	BlockNumber     *int64      `json:"blockNumber"     ` // 区块编号
+	BlockNumberLt   *int64      `json:"blockNumberlt"   ` // 小于区块编号
+	BlockNumberGt   *int64      `json:"blockNumberGt"   ` // 大于区块编号
+	CheckState      *int        `json:"checkState"      ` // 链上状态: 0:待处理 10:已确认 20:确认异常
+	CheckStateList  []int       `json:"checkStateList"      `
+	State           *int        `json:"state"      ` // 链上状态: 0:待处理 10:已处理
+	StateList       []int       `json:"stateList"      `
+	CreatedAtGt     *gtime.Time `json:"createdAtGt"     ` // 创建时间大于
+	CreatedAtLt     *gtime.Time `json:"createdAtLt"     ` // 创建时间小于
+	Limit           int
+	Desc            bool
+	OrderBy         string
 }
 
 // 日志存储器
@@ -51,7 +54,7 @@ type DbLogStorage interface {
 
 	QueryLogs(ctx context.Context, query LogQuery) (logs []Elog, err error)
 
-	UpdateBlockCheckState(ctx context.Context, log Elog) error
+	UpdateBlockCheckState(ctx context.Context, blockHashs []string, blockNumber uint64, checkState int) error
 
 	GetLogByElogId(ctx context.Context, txHash common.Hash, blockHash common.Hash, index uint) (log Elog, err error)
 }

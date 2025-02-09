@@ -96,10 +96,16 @@ func startSingleContract(ctx context.Context, client *ethclient.Client, config *
 	scan := scanner.NewScanner(config.Name, config.AddressObj, scanStorage, logStorage, config.TopicsObj)
 	return gcron.AddSingleton(ctx, "*/10 * * * * *", func(ctx context.Context) {
 		g.Log().Infof(ctx, "扫描%v开始*********************", config.Name)
-		_, err := scan.ScanToStroage(ctx, client, lastBlock)
+		_lastBlock := lastBlock
+		// if lastBlock >= 46507929+3 {
+		// 	g.Log().Infof(ctx, "lastBlock >= 46503000")
+		// 	_lastBlock = 46507929 + 3
+		// }
+		_, err := scan.ScanToStroage(ctx, client, _lastBlock)
 		if err != nil {
 			g.Log().Infof(ctx, "扫描%v错误 %v", config.Name, err)
 		}
+
 		g.Log().Infof(ctx, "扫描%v结束---------------------", config.Name)
 	})
 }
@@ -108,6 +114,7 @@ func startCheckerSingleContract(ctx context.Context, client *ethclient.Client, c
 	checker := scanner.NewChecker(config.Name, logStorage)
 	return gcron.AddSingleton(ctx, "*/10 * * * * *", func(ctx context.Context) {
 		g.Log().Infof(ctx, "check %v开始*********************", config.Name)
+
 		_, err := checker.CheckAllStroage(ctx, client, lastBlock)
 		if err != nil {
 			g.Log().Infof(ctx, "check %v错误 %v", config.Name, err)

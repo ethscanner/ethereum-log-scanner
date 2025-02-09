@@ -1,5 +1,5 @@
 logger:
-  level : "all"
+  level : "info"
   stdout: true
 # e-scanner.mode = gorm需要配置数据库连接
 database:
@@ -7,7 +7,7 @@ database:
     #ink:  "mysql:root:1qaz2wsx@tcp(192.168.100.1:3306)/test"
     link:  "pgsql:root:root@tcp(192.168.100.1:5432)/postgres"
     #link:  "sqlite::@file(test.db)"
-    debug: "true"
+    debug: "false"
     
 # e-scanner.mode = rmq需要配置mq连接
 # mq:
@@ -21,7 +21,7 @@ e-scanner:
   rpc: https://rpc.ankr.com/bsc
   contracts:
     - name: USDTransfer  #扫描器名称(控制在10字符内)
-      check: false
+      check: true
       address: ["0x0E09FaBB73Bd3Ade0a17ECC321fD13a19e81cE82"] #合约地址
       topics: 
         - ["Transfer(address,address,uint256)"] #监听事件

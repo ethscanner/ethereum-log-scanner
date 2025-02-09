@@ -14,7 +14,7 @@ import (
 	"github.com/gogf/gf/v2/frame/g"
 )
 
-const Max_Concurrent_Threads = 3
+const Max_Concurrent_Threads = 4
 
 type scanner struct {
 	name string
@@ -70,7 +70,7 @@ func (s *scanner) GetScanBlockNumbersByStroage(ctx context.Context, expectToBloc
 
 	if from == 0 {
 		from = to
-		if err := s.InitScannedBlockNum(ctx, expectToBlockNum); err != nil {
+		if err := s.InitScannedBlockNum(ctx, from); err != nil {
 			return 0, 0, err
 		}
 	}
@@ -144,7 +144,6 @@ func (s *scanner) SegmentationScan(ctx context.Context, client *ethclient.Client
 		actualFrom = actualTo - s.SegmentationLength
 		if actualTo > to {
 			actualTo = to
-
 		}
 		logs, scannedBlockNum, err = s.ConcurrentThreadQuery(ctx, client, actualFrom, actualTo)
 		if err != nil {
@@ -159,10 +158,15 @@ func (s *scanner) SegmentationScan(ctx context.Context, client *ethclient.Client
 
 // 多线程查询(不包含from区块)
 func (s *scanner) ConcurrentThreadQuery(ctx context.Context, client *ethclient.Client, from, to uint64) (logs []types.Log, scannedBlockNum uint64, err error) {
+	if from == to {
+		return logs, 0, nil
+	}
 	ranges := to - from
-	if ranges < s.IntervalPerScan {
-		logs, err = s.FilterQuery(ctx, client, from+1, to)
+	if ranges <= s.IntervalPerScan {
+		from = from + 1
+		logs, err = s.FilterQuery(ctx, client, from, to)
 		return logs, to, err
+
 	} else if ranges > Max_Concurrent_Threads*s.IntervalPerScan { //如果大于最大线程数则截取
 		return nil, 0, errors.New("超出最大限制数")
 	}
@@ -187,11 +191,11 @@ func (s *scanner) ConcurrentThreadQuery(ctx context.Context, client *ethclient.C
 			actualTo = to
 		}
 		go func(from, to uint64) {
-			logs, err := s.FilterQuery(ctx, client, actualFrom, to)
-			ret := queryResult{from, to, logs, err}
+			logs, err := s.FilterQuery(ctx, client, from, to)
+			ret := queryResult{actualFrom, actualTo, logs, err}
 			ch <- ret
 			wg.Done()
-		}(from, actualTo)
+		}(actualFrom, actualTo)
 	}
 	wg.Wait()
 	close(ch)

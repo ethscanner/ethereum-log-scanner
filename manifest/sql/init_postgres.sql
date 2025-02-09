@@ -18,3 +18,7 @@ CREATE TABLE hd_contract_event
     updated_at       TIMESTAMP,
     UNIQUE (block_hash, event_id,tx_hash)
 ); 
+CREATE INDEX idx_block_number ON hd_contract_event (block_number);
+CREATE INDEX idx_created_at ON hd_contract_event (created_at);
+CREATE INDEX idx_tx_hash ON hd_contract_event (tx_hash);
+CREATE INDEX idx_contract_event ON hd_contract_event (contract_name, contract_address, event_hash); 

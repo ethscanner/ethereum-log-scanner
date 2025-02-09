@@ -104,9 +104,20 @@ func (s *gOrmLogStorage) QueryLogs(ctx context.Context, query scanner.LogQuery) 
 	if query.BlockNumber != nil {
 		sdao = sdao.Where("block_number=?", query.BlockNumber)
 	}
-
+	if query.BlockNumberLt != nil {
+		sdao = sdao.Where("block_number < ?", query.BlockNumberLt)
+	}
+	if query.BlockNumberGt != nil {
+		sdao = sdao.Where("block_number > ?", query.BlockNumberGt)
+	}
 	if query.EventId != nil {
 		sdao = sdao.Where("event_id=?", query.EventId)
+	}
+	if query.CreatedAtGt != nil {
+		sdao = sdao.Where("created_at > ?", query.CreatedAtGt)
+	}
+	if query.CreatedAtLt != nil {
+		sdao = sdao.Where("created_at < ?", query.CreatedAtLt)
 	}
 	if query.ContractName != "" {
 		sdao = sdao.Where("contract_name=?", query.ContractName)
@@ -174,10 +185,10 @@ func (s *gOrmLogStorage) entity2Elog(v entity.HdContractEvent) (elog scanner.Elo
 	}
 }
 
-func (s *gOrmLogStorage) UpdateBlockCheckState(ctx context.Context, log scanner.Elog) error {
+func (s *gOrmLogStorage) UpdateBlockCheckState(ctx context.Context, blockHashs []string, blockNumber uint64, checkState int) error {
 	sdao := dao.HdContractEvent.Ctx(ctx)
-	_, err := sdao.Data("check_state = ?,checked_block=?", log.CheckState, log.CheckedBlock).
-		Where("id=?", log.Id).Update()
+	_, err := sdao.Data("check_state = ?,checked_block=?", checkState, blockNumber).
+		Where("block_hash in (?)", blockHashs).Update()
 	if err != nil {
 		return err
 	}
