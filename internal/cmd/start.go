@@ -8,6 +8,7 @@ import (
 	"github.com/ethscanner/ethereum-log-scanner/core/scanner"
 	"github.com/ethscanner/ethereum-log-scanner/core/storage"
 	"github.com/ethscanner/ethereum-log-scanner/internal/config"
+	"github.com/ethscanner/ethereum-log-scanner/internal/service"
 	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/os/gcron"
 )
@@ -18,9 +19,13 @@ var client *ethclient.Client
 var lastBlock uint64
 
 func Start(ctx context.Context) {
+	if _, err := startNftMint(ctx); err != nil {
+		panic(err)
+	}
 	config, err := config.ParseContractConfig(ctx)
 	if err != nil {
 		panic(err)
+
 	}
 	mode = config.Mode
 	rpc = config.Rpc
@@ -120,6 +125,17 @@ func startCheckerSingleContract(ctx context.Context, client *ethclient.Client, c
 			g.Log().Infof(ctx, "check %v错误 %v", config.Name, err)
 		}
 		g.Log().Infof(ctx, "check%v结束---------------------", config.Name)
+
+	})
+}
+
+func startNftMint(ctx context.Context) (*gcron.Entry, error) {
+	return gcron.AddSingleton(ctx, "*/10 * * * * *", func(ctx context.Context) {
+		g.Log().Infof(ctx, "nft mint 开始*********************")
+		if err := service.NftManagerHandle().ScanMintEvent(ctx); err != nil {
+			g.Log().Infof(ctx, "nft mint 错误 %v", err)
+		}
+		g.Log().Infof(ctx, "nft mint结束---------------------")
 
 	})
 }

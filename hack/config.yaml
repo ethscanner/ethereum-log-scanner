@@ -8,4 +8,4 @@ gfcli:
       - my.image.pub/my-app
   gen:
     dao:
-      - link:     "mysql:root:1qaz2wsx@tcp(192.168.100.1:3306)/test"
+      link:  "pgsql:root:root@tcp(192.168.100.1:5432)/postgres"

@@ -31,7 +31,7 @@ func NewChecker(name string, logStorage DbLogStorage) *checker {
 }
 
 func (s *checker) CheckAllStroage(ctx context.Context, client *ethclient.Client, blockNumber uint64) (scannedBlockNum uint64, err error) {
-	var CheckState int = 0
+	var CheckState int = int(CHECK_STATE_PENDING)
 	if blockNumber < s.DelayBlocks {
 		return 0, nil
 	}

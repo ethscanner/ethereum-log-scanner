@@ -61,10 +61,11 @@ func (s *gOrmLogStorage) SaveLogs(ctx context.Context, name string, logs []types
 			BlockHash:       v.BlockHash.Hex(),
 			EventTopics:     utils.HashArrayToBytes(v.Topics),
 			EventData:       v.Data,
-			State:           0,
+			State:           int(scanner.LOG_STATE_PENDING),
 		}
 		saveLogs = append(saveLogs, &obj)
 	}
+
 	ret, err := sdao.Data(saveLogs).Batch(5000).InsertIgnore()
 	if err != nil {
 		return err
@@ -89,7 +90,7 @@ func (s *gOrmLogStorage) AddLogsToCache(ctx context.Context, name string, logs [
 func (s *gOrmLogStorage) MarkAsProcessed(ctx context.Context, name string, ids []uint64) error {
 	sdao := dao.HdContractEvent.Ctx(ctx)
 
-	_, err := sdao.Data("state=10").WhereIn("id", ids).Update()
+	_, err := sdao.Data("state=?", scanner.LOG_STATE_PROCESSED).WhereIn("id", ids).Update()
 	return err
 }
 
@@ -140,7 +141,7 @@ func (s *gOrmLogStorage) QueryLogs(ctx context.Context, query scanner.LogQuery) 
 	if query.IdGt != nil {
 		sdao = sdao.Where("id > ?", query.IdGt)
 	}
-	if query.Limit == 0 || query.Limit > 10000 {
+	if query.Limit == 0 {
 		query.Limit = 10000
 	}
 	dbList := []entity.HdContractEvent{}
